@@ -5,6 +5,7 @@ const command = args[0];
 
 enum Commands {
     Init = "init",
+    Catfile = "cat-file"
 }
 
 switch (command) {
@@ -18,6 +19,19 @@ switch (command) {
         fs.mkdirSync(".git/refs", { recursive: true });
         fs.writeFileSync(".git/HEAD", "ref: refs/heads/main\n");
         console.log("Initialized git directory");
+        break;
+    case Commands.Catfile:
+        const [blobDir, blobFile] = [args[2].slice(0, 2), args[2].slice(2)];
+
+        const blob = fs.readFileSync(`.git/objects/${blobDir}/${blobFile}`);
+
+        const decompressedBlob = zlib.unzipSync(blob);
+
+        const contentStartIndex = decompressedBlob.indexOf(0) + 1;
+
+        const fileContent = decompressedBlob.slice(contentStartIndex).toString();
+
+        process.stdout.write(fileContent);
         break;
     default:
         throw new Error(`Unknown command ${command}`);
